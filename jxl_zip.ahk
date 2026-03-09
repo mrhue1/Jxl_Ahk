@@ -231,7 +231,6 @@ jxx(fn) {
 					src:=buffer((sz + 4095) & ~4095)
 				DllCall("minizip\mz_zip_reader_entry_save_buffer","Ptr",uz,"Ptr",src,"Int",sz)
 				DirCreate(RegExReplace(s,"\\[^\\]+$"))
-				f := FileOpen(s,"w")
 				if RegExMatch(s,"i)\.jxl$") {
 					if !IsSet(dec)
 						global dec := DllCall("jxl\JxlDecoderCreate","Ptr",0)
@@ -260,8 +259,12 @@ jxx(fn) {
 			          DllCall("jxl\JxlDecoderReset","Ptr",dec)
 			     	if !RegExMatch(s := RegExReplace(s,"i)\.jxl$"), "\.jpe?g$")
 			     		s .= ".jpg"
+					f := FileOpen(s,"w")	; note the filename change here
 			     	f.RawWrite(buf,buf.size-avail)
-			     } else f.RawWrite(src,sz)
+			     } else {
+			     	f := FileOpen(s,"w")
+			     	f.RawWrite(src,sz)
+			     }
 			     f.close()
 			     FileSetTime(DateAdd(utc,NumGet(i,8,"Ptr"),"s"),s)
 			}
