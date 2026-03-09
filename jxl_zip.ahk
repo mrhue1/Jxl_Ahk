@@ -37,7 +37,8 @@ if !A_Args.length {
 		jxl(A_LoopFileName)
 } else if A_Args[1]="x" {
 	Loop A_Args.length-1
-		jxx(A_Args[A_Index+1])
+		Loop Files, A_Args[A_Index+1]
+			jxx(A_LoopFilePath)
 } else Loop A_Args.length
 	jxl(A_Args[A_Index])
 msgbox "done"
@@ -217,17 +218,20 @@ jxx(fn) {
 	static utc:=DateAdd(1970,DateDiff(A_Now,A_NowUTC,"s"),"s")
 	global src, buf
 	if FileExist(fn) {
-		dir := RegExReplace(fn,"( jxl)?\.zip")
+		A_IconTip:=fn
+		dir := RegExReplace(fn,".*\\|( jxl)?\.zip")
 		zip_open(fn,"r")
 		err:=DllCall("minizip\mz_zip_reader_goto_first_entry","Ptr",uz)
 		while !err {
 			if !DllCall("minizip\mz_zip_reader_entry_get_info","Ptr",uz,"Ptr*",&i:=0) {
 				s := dir "\" StrReplace(StrGet(NumGet(i,8 + A_PtrSize *4 + 48,"Ptr"),"utf-8"),"/","\")	; filename, change / to \
 				sz := DllCall("minizip\mz_zip_reader_entry_save_buffer_length","Ptr",uz,"Int")
+				A_IconTip:=fn ": " s " " sz " bytes"
 				if src.size < sz
 					src:=buffer((sz + 4095) & ~4095)
 				DllCall("minizip\mz_zip_reader_entry_save_buffer","Ptr",uz,"Ptr",src,"Int",sz)
 				DirCreate(RegExReplace(s,"\\[^\\]+$"))
+				f := FileOpen(s,"w")
 				if RegExMatch(s,"i)\.jxl$") {
 					if !IsSet(dec)
 						global dec := DllCall("jxl\JxlDecoderCreate","Ptr",0)
@@ -256,9 +260,9 @@ jxx(fn) {
 			          DllCall("jxl\JxlDecoderReset","Ptr",dec)
 			     	if !RegExMatch(s := RegExReplace(s,"i)\.jxl$"), "\.jpe?g$")
 			     		s .= ".jpg"
-			     	sz := buf.size-avail
-			     } 
-			     f := FileOpen(s,"w"), f.RawWrite(buf,sz), f.close()
+			     	f.RawWrite(buf,buf.size-avail)
+			     } else f.RawWrite(src,sz)
+			     f.close()
 			     FileSetTime(DateAdd(utc,NumGet(i,8,"Ptr"),"s"),s)
 			}
 			err:=DllCall("minizip\mz_zip_reader_goto_next_entry","Ptr",uz)
