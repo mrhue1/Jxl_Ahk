@@ -2,7 +2,7 @@
 ; jxl xxx
 #Requires AutoHotkey v2.0
 #DllLoad "minizip.dll"	; https://github.com/zlib-ng/minizip-ng/
-#DllLoad "unrar64.dll"
+#DllLoad "unrar64.dll"	; https://www.rarlab.com/rar_add.htm
 #DllLoad "libdeflate.dll"
 
 #DllLoad "jxl\"
@@ -455,3 +455,4 @@ jxl(fn) {
 ;  unsigned int AtimeHigh;         ;6280         6292
 ;  unsigned int Reserved[988]      ;6284         6296
 ;};                                ;10236	10248
+
